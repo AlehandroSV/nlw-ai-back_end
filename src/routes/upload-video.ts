@@ -6,6 +6,7 @@ import { pipeline } from 'node:stream';
 import { promisify } from 'node:util';
 import { prisma } from '../lib/prisma';
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const pump = promisify(pipeline);
 
@@ -25,18 +26,22 @@ export async function uploadVideoRoute(app: FastifyInstance) {
 
     const extensions = path.extname(data.filename);
 
-    if (extensions !== 'mp3') {
-      return res
-        .status(400)
-        .send({ message: 'Invalid input type, please upload a MP3.' });
+    if (extensions !== '.mp3') {
+      return res.status(400).send({
+        message: 'Invalid input type, please upload a MP3.',
+        extensions: extensions.toString(),
+      });
     }
 
     const fileBaseName = path.basename(data.filename, extensions);
 
     const fileUploadName = `${fileBaseName}-${randomUUID()}${extensions}`;
 
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const currentDir = path.dirname(currentFilePath);
+
     const uploadDestination = path.resolve(
-      __dirname,
+      currentDir,
       '../../temp',
       fileUploadName,
     );

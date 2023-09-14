@@ -5,3 +5,4 @@ dev.db-journal
 
 yarn.lock
 yarn-error.log
+temp/*.mp3
