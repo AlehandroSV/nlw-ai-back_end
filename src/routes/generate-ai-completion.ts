@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { prisma } from '../lib/prisma';
 import { openai } from '../lib/openia';
 import { z } from 'zod';
-import { createReadStream } from 'node:fs';
+import { OpenAIStream, streamToResponse } from 'ai';
 
 export async function generateAICompletionRoute(app: FastifyInstance) {
   app.post('/ai/generate', async (req, res) => {
@@ -40,8 +40,17 @@ export async function generateAICompletionRoute(app: FastifyInstance) {
           content: promptMessage,
         },
       ],
+      stream: true,
     });
 
-    return response;
+    const stream = OpenAIStream(response);
+
+    streamToResponse(stream, res.raw, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, DELETE',
+      },
+    });
   });
 }
